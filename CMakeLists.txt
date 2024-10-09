@@ -4,11 +4,17 @@ cmake_minimum_required(VERSION 3.20)
 # Project name and version
 project(Custom_KMeans VERSION 1.0)
 
+# Specify which compiler is used when none is set
+if(NOT CMAKE_CXX_COMPILER)
+    set(CMAKE_CXX_COMPILER g++)
+endif()
+
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
+
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
@@ -20,7 +26,6 @@ option(DISABLE_ARCH_OPT "Disable architecture-specific optimizations" OFF)
 if(DISABLE_ARCH_OPT)
 
     message(STATUS "Architecture optimizations DISABLED")
-    add_compile_definitions(ARCH_OPT="no_archopt")
 
 else()
 
