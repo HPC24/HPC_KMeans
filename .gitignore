@@ -1,2 +1,4 @@
-out/
+**/out/
 vtune_results*/
+*.out
+*.err

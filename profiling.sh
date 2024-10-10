@@ -4,16 +4,16 @@
 #SBATCH --reservation=hpc_course_sose2024
  
 #SBATCH --job-name=
-#SBATCH --time=0-00:05:00
+#SBATCH --time=0-00:07:00
 #SBATCH --partition=single
-#SBATCH --nnodes=1
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=24
 #SBATCH --mem-per-cpu=7900MB
 
-#SBATCH --array=1-10
-#SBATCH --output=%u.log.%A_%a.out
-#SBATCH --error=%u.log.%A_%a.err
+#SBATCH --output=%u.log.%j.out
+#SBATCH --error=%u.log.%j.err
+
 
 # Threads used for the Profiling
 PROFILING_THREADS=1
@@ -24,7 +24,7 @@ ANALYSIS_TYPE="hotspots"
 
 # Paths
 EXECUTABLE="src/KMeans"
-DATA="/home/joshua/Projects/HPC_Project/data/openml/openml.org/data/v1/download/52667.gz"
+DATA="/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data/openml/openml.org/data/v1/download/52667.gz"
 OUTPUT_DIR="./src/out"
 SOURCE_DIR="./src"
 
@@ -37,7 +37,7 @@ ARCH_OPT="OFF"
 LINK_LIBS="-lz -fopenmp"
 
 INCLUDE_DIRECTORY="./include"
-SOURCE_FILES=$(ls ${source_dir}/*.cpp)
+SOURCE_FILES=$(ls ${SOURCE_DIR}/*.cpp)
 
 if [ ${ARCH_OPT} == "OFF" ]; then
     ARCH_OPT="no_archopt"
@@ -51,7 +51,7 @@ else
 
 fi
 
-OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${cxx_compile_flags/-/}_${ARCH_OPT}_timings.txt
+OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${CXX_COMPILER_FLAGS/-/}_${ARCH_OPT}_timings.txt
 
 echo "Creating output directory: ${OUTPUT_DIR}"
 mkdir -p "${OUTPUT_DIR}"
@@ -67,12 +67,12 @@ fi
 
 # Start with slurm specific commands
 module purge
-module add TOOLS
 module add slurm
-moduel add intel-oneapi-vtune/2024.1.0
+module add zlib/1.3.1
+module add intel-oneapi-vtune/2024.1.0
 
-if [ $CXX_COMPILER == "gcc" ]; then
-    echo "Loading GCC"
+if [ $CXX_COMPILER == "g++" ]; then
+    echo "Loading gcc compiler"
     module add gcc/13.2.0
 elif [ $CXX_COMPILER == "intel" ]; then
     echo "Loading intel"
@@ -102,7 +102,9 @@ echo "Starting Vtune"
 echo "Collecting: ${ANALYSIS_TYPE}"
 echo "OMP_NUM_THREADS: ${PROFILING_THREADS}"
 
-vtune -collect $ANALYSIS_TYPE -result-dir $RESULT_DIR -- $EXECUTABLE
+export OMP_NUM_THREADS=${PROFILING_THREADS}
+
+vtune -collect ${ANALYSIS_TYPE} -result-dir ${PROFILING_RESULTS_DIR}_${ARCH_OPT} -- ${EXECUTABLE} --data ${DATA} --output ${OUTPUT_FILE}
 
 echo "finished profiling"
 
