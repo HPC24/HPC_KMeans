@@ -35,6 +35,7 @@ else
     echo "TIMING_ITERATIONS set to ${TIMING_ITERATIONS} which is an invalid value needs to be >= 1"
     echo "ERROR: set wrong value for TIMING_ITERATIONS"
     exit 1
+fi
 
 
 # VTune Parameters
@@ -66,7 +67,6 @@ else
     echo "arch opt ON"
     echo "adding compiler Flags -march=native -mtune=native"
     #CXX_COMPILER_FLAGS="$CXX_COMPILER_FLAGS -march=native -mtune=native"
-
 fi
 
 COMPILER_OPTIMIZATION=$(echo ${CXX_FLAGS} | grep -o '\-O[^-]*')
@@ -90,7 +90,6 @@ if [ ! -f ${OUTPUT_FILE} ]; then
 else
     echo "${OUTPUT_FILE} already exists"
 fi
-
 
 # Start with slurm specific commands
 module purge
@@ -120,10 +119,10 @@ echo "Current working directory is `pwd`"
 
 echo "Starting CMake Build Process"
 
-cmake -S . -B ${BUILD_DIR} /
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} /
-    -DCMAKE_CXX_COMPILER=${CXX_COMPILER} /
-    -DCOMPILER_OPTIMIZATION=${COMPILER_OPTIMIZATION} /
+cmake -S . -B ${BUILD_DIR} \
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+    -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+    -DCOMPILER_OPTIMIZATION=${COMPILER_OPTIMIZATION} \
     -DDISABLE_ARCH_OPT=${DISABLE_ARCH_OPT}
 
 # ${CXX_COMPILER} ${CXX_STANDARD} ${CXX_COMPILER_FLAGS} -I ${INCLUDE_DIRECTORY} ${SOURCE_FILES} -o ${EXECUTABLE} ${LINK_LIBS}
@@ -144,14 +143,35 @@ if [ ${TIMING_ITERATIONS} -eq 1 ]; then
 
     export OMP_NUM_THREADS=${PROFILING_THREADS}
 
-    vtune -collect ${ANALYSIS_TYPE} /
-        -result-dir ${VTUNE_OUTPUT_DIRECTORY} /
-        -- ${BUILD_DIR}/${EXECUTABLE} /
-        --data ${DATA} /
-        --output ${OUTPUT_FILE} /
+    vtune -collect ${ANALYSIS_TYPE} \
+        -result-dir ${VTUNE_OUTPUT_DIRECTORY} \
+        -- ${BUILD_DIR}/${EXECUTABLE} \
+        --data ${DATA} \
+        --output ${OUTPUT_FILE} \
         --timing_iterations ${TIMING_ITERATIONS}
 
     echo "finished profiling"
+
+else
+
+    echo "Starting timing for up to ${SLURM_CPUS_PER_TASK}"
+    echo "Timing iterations: ${TIMING_ITERATIONS}"
+
+    for N in $(seq 1 ${SLURM_CPUS_PER_TASK}); 
+    do
+        export OMP_NUM_THREADS=${N}
+
+        echo "Running Timing with ${threads} Threads"
+
+        ${BUILD_DIR}/${EXECUTABLE} \
+        --data ${DATA} \
+        --output ${OUTPUT_FILE} \
+        --timing_iterations ${TIMING_ITERATIONS}
+    done
+
+    echo "Finished timing"
+
+fi
 
 
 
