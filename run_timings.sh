@@ -1,5 +1,7 @@
 #!/bin/bash
 
+timing_iterations=20
+
 exectuable="src/KMeans"
 data="/home/joshua/Projects/HPC_Project/data/openml/openml.org/data/v1/download/52667.gz"
 output_dir="./src/out"
@@ -54,7 +56,7 @@ for threads in $(seq 1 ${num_cores}); do
 
     export OMP_NUM_THREADS=${threads}
     echo "Running Timing with ${threads} Threads"
-    ${exectuable} --data ${data} --output ${output_file}
+    ${exectuable} --data ${data} --output ${output_file} --timing_iterations ${timing_iterations}
 
 
 done

@@ -46,7 +46,10 @@ void Parallel_KMeans<FType, IType>::initializeCentroids(const std::vector<std::v
 }
 
 template <typename FType, typename IType>
-void Parallel_KMeans<FType, IType>::ReinitializeCentroids(const std::vector<std::vector<FType>>& data, std::vector<std::vector<FType>>& new_centroids, int cluster_idx){
+void Parallel_KMeans<FType, IType>::ReinitializeCentroids(
+    const std::vector<std::vector<FType>>& data, 
+    std::vector<std::vector<FType>>& new_centroids, 
+    int cluster_idx){
 
     // get the random initial centroids form the intial data
     std::uniform_int_distribution<> dist{0,  static_cast<int>(data.size() - 1)};
@@ -55,6 +58,7 @@ void Parallel_KMeans<FType, IType>::ReinitializeCentroids(const std::vector<std:
     new_centroids[cluster_idx] = data[dist(this->gen)];
 
 }
+
 template <typename FType, typename IType>
 void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& data){
 

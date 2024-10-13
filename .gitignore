@@ -2,3 +2,4 @@
 vtune_results*/
 *.out
 *.err
+build*/

@@ -14,46 +14,74 @@
 #SBATCH --output=%u.log.%j.out
 #SBATCH --error=%u.log.%j.err
 
+# CMake output_Paths
+BUILD_DIR="./build"
+
+CMAKE_BUILD_TYPE="Release"
 
 # Threads used for the Profiling
 PROFILING_THREADS=1
 
+# Number of iterations used for timing the KMeans implementation
+TIMING_ITERATIONS=1
+
+if [ ${TIMING_ITERATIONS} -eq 1 ]; then
+    echo "As Timing Iterations is set to ${TIMING_ITERATIONS} running VTune"
+    echo "To Time the KMeans Implementation for Different Number of OMP_NUM_THREADS set TIMING_ITERATION > 1"
+elif [ ${TIMING_ITERATIONS} -gt 1]; then
+    echo "As Timing Iterations is set to ${TIMING_ITERATIONS} running Performance for Different Number of OMP_NUM_THREADS"
+    echo "To analyse the performance of the KMeans Implementation with VTune set TIMING_ITERATIONS == 1"
+else 
+    echo "TIMING_ITERATIONS set to ${TIMING_ITERATIONS} which is an invalid value needs to be >= 1"
+    echo "ERROR: set wrong value for TIMING_ITERATIONS"
+    exit 1
+
+
 # VTune Parameters
-PROFILING_RESULTS_DIR="./vtune_results"
+PROFILING_RESULTS_DIR="vtune_results"
 ANALYSIS_TYPE="hotspots"
 
 # Paths
-EXECUTABLE="src/KMeans"
+EXECUTABLE="KMeans"
 DATA="/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data/openml/openml.org/data/v1/download/52667.gz"
-OUTPUT_DIR="./src/out"
-SOURCE_DIR="./src"
+#OUTPUT_DIR="./src/out"
+#SOURCE_DIR="./src"
 
 # Compiler Flags
 CXX_COMPILER="g++"
 CXX_STANDARD="-std=c++20"
 CXX_COMPILER_FLAGS="-O3"
-ARCH_OPT="OFF"
+DISABLE_ARCH_OPT="OFF"
 #compile_definitions="-DCOMPILER=\"${cxx_compiler}\" -DOPTIMIZATION=3 -DARCH_OPT=\"no_archopt\""
-LINK_LIBS="-lz -fopenmp"
+#LINK_LIBS="-lz -fopenmp"
 
-INCLUDE_DIRECTORY="./include"
-SOURCE_FILES=$(ls ${SOURCE_DIR}/*.cpp)
+#INCLUDE_DIRECTORY="./include"
+#SOURCE_FILES=$(ls ${SOURCE_DIR}/*.cpp)
 
-if [ ${ARCH_OPT} == "OFF" ]; then
+if [ ${DISABLE_ARCH_OPT} == "ON" ]; then
     ARCH_OPT="no_archopt"
     echo "arch opt OFF"
 else
     ARCH_OPT="arch_opt"
     echo "arch opt ON"
     echo "adding compiler Flags -march=native -mtune=native"
-    CXX_COMPILER_FLAGS="$CXX_COMPILER_FLAGS -march=native -mtune=native"
-
+    #CXX_COMPILER_FLAGS="$CXX_COMPILER_FLAGS -march=native -mtune=native"
 
 fi
 
-OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${CXX_COMPILER_FLAGS/-/}_${ARCH_OPT}_timings.txt
+COMPILER_OPTIMIZATION=$(echo ${CXX_FLAGS} | grep -o '\-O[^-]*')
+echo "Optimization Flag: ${COMPILER_OPTIMIZATION}"
 
-echo "Creating output directory: ${OUTPUT_DIR}"
+# Paths of the Output files, Build directory, output directory (timings) and the VTune results directory
+BUILD_DIR=${BUILD_DIR}_${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}
+OUTPUT_DIR=${BUILD_DIR}/out
+OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}_timings.txt
+VTUNE_OUTPUT_DIRECTORY=${BUILD_DIR}/${PROFILING_RESULTS_DIR}_OMP_${PROFILING_THREADS}_${ARCH_OPT}
+
+echo "Creating Build directory: ${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
+
+echo "Creating Output directory: ${OUTPUT_DIR}"
 mkdir -p "${OUTPUT_DIR}"
 
 if [ ! -f ${OUTPUT_FILE} ]; then
@@ -62,7 +90,6 @@ if [ ! -f ${OUTPUT_FILE} ]; then
 else
     echo "${OUTPUT_FILE} already exists"
 fi
-
 
 
 # Start with slurm specific commands
@@ -86,27 +113,45 @@ echo "Running on $SLURM_NPROCS processors."
 echo "Maximal threads per process: $SLURM_CPUS_PER_TASK"
 echo "Current working directory is `pwd`" 
 
-echo "Starting Compilation"
-echo "Compiler: ${CXX_COMPILER}"
-echo "CXX_Standard: ${CXX_STANDARD}"
-echo "CXX Flags: ${CXX_COMPILER_FLAGS} ${LINK_LIBS}"
+# echo "Starting Compilation"
+# echo "Compiler: ${CXX_COMPILER}"
+# echo "CXX_Standard: ${CXX_STANDARD}"
+# echo "CXX Flags: ${CXX_COMPILER_FLAGS} ${LINK_LIBS}"
 
-${CXX_COMPILER} ${CXX_STANDARD} ${CXX_COMPILER_FLAGS} -I ${INCLUDE_DIRECTORY} ${SOURCE_FILES} -o ${EXECUTABLE} ${LINK_LIBS}
+echo "Starting CMake Build Process"
 
-echo "Compilation done"
+cmake -S . -B ${BUILD_DIR} /
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} /
+    -DCMAKE_CXX_COMPILER=${CXX_COMPILER} /
+    -DCOMPILER_OPTIMIZATION=${COMPILER_OPTIMIZATION} /
+    -DDISABLE_ARCH_OPT=${DISABLE_ARCH_OPT}
 
-echo "Creating Vtune result directory ${PROFILING_RESULTS_DIR}_${ARCH_OPT}"
-mkdir -p "${PROFILING_RESULTS_DIR}_${ARCH_OPT}"
+# ${CXX_COMPILER} ${CXX_STANDARD} ${CXX_COMPILER_FLAGS} -I ${INCLUDE_DIRECTORY} ${SOURCE_FILES} -o ${EXECUTABLE} ${LINK_LIBS}
+echo "Creating execitable ${EXECUTABLE} in ${BUILD_DIR}"
 
-echo "Starting Vtune"
-echo "Collecting: ${ANALYSIS_TYPE}"
-echo "OMP_NUM_THREADS: ${PROFILING_THREADS}"
+cmake --build ${BUILD_DIR}
 
-export OMP_NUM_THREADS=${PROFILING_THREADS}
+echo "CMake finished"
 
-vtune -collect ${ANALYSIS_TYPE} -result-dir ${PROFILING_RESULTS_DIR}_${ARCH_OPT} -- ${EXECUTABLE} --data ${DATA} --output ${OUTPUT_FILE}
+if [ ${TIMING_ITERATIONS} -eq 1 ]; then
 
-echo "finished profiling"
+    echo "Creating Vtune result directory ${VTUNE_OUTPUT_DIRECTORY}"
+    mkdir -p "${VTUNE_OUTPUT_DIRECTORY}"
+
+    echo "Starting Vtune"
+    echo "Collecting: ${ANALYSIS_TYPE}"
+    echo "OMP_NUM_THREADS: ${PROFILING_THREADS}"
+
+    export OMP_NUM_THREADS=${PROFILING_THREADS}
+
+    vtune -collect ${ANALYSIS_TYPE} /
+        -result-dir ${VTUNE_OUTPUT_DIRECTORY} /
+        -- ${BUILD_DIR}/${EXECUTABLE} /
+        --data ${DATA} /
+        --output ${OUTPUT_FILE} /
+        --timing_iterations ${TIMING_ITERATIONS}
+
+    echo "finished profiling"
 
 
 

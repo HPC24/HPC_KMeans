@@ -27,9 +27,6 @@ const double TOL = 1e-9;
 const int N_CLUSTER = 10;
 const int MAX_ITER = 500;
 
-// how many timings are being done
-const int TIMING_ITERATIONS = 20;
-
 // Parameters to generate the Test data
 const int N = 2000;
 const int COLS = 500;
@@ -43,9 +40,10 @@ void print_usage() {
 
     std::cout << "Usage: program --data <filepath> --output <filepath> [--verbose]" << std::endl;
     std::cout << "Options:" << std::endl;
-    std::cout << "--data <value>        Provide data input" << std::endl;
-    std::cout << "--output <filepath>  Specify output file" << std::endl;
-    std::cout << "--verbose             Enable verbose mode" << std::endl;
+    std::cout << "--data <filepathe>        Provide path to data input" << std::endl;
+    std::cout << "--output <filepath>  Specify path output file" << std::endl;
+    std::cout << "--timing_iterations <value> Number of iterations to time the KMeans implementation" << std::endl;
+    std::cout << "--verbose                Enable verbose mode" << std::endl;
 }
 
 bool endsWithGZ(const std::string& path) {
@@ -266,11 +264,13 @@ int main(int argc, char* argv[]){
     std::vector<int> labels;
     std::string filename;
     std::string output_file;
+    int timing_iterations;
     bool verbose = false;
 
     // check if all required arguments have values
     bool has_data = false;
     bool has_output = false;
+    bool has_timing_iterations;
 
     // check wheter all the arguments are used and correctly specified
     for (int i = 1; i < argc; ++i)
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]){
 
         else if (arg == "--output")
         {
-            if (i + 1 << argc && argv[i + 1][0] != '-')
+            if (i + 1 < argc && argv[i + 1][0] != '-')
             {
                 if (std::filesystem::exists(argv[++i]))
                 {
@@ -331,6 +331,22 @@ int main(int argc, char* argv[]){
             std::cout << "Verobse ENABLED" << std::endl;
             verbose = true;
         }
+        else if (arg == "--timing_iterations")
+        {
+            if (i + 1 < argc && argv[i + 1][0] != '-')
+            {
+                timing_iterations = std::stoi(argv[i]);
+                std::cout << "Set Timing iterations: " << timing_iterations << std::endl; 
+                has_timing_iterations = true;
+            }
+            else 
+            {
+                std::cerr << "--timing_iterations requires a valied value" << std::endl;
+                print_usage();
+                return 1;
+            }
+
+        }
         else 
         {
             std::cerr << "Unknown Argument" << std::endl;
@@ -356,6 +372,12 @@ int main(int argc, char* argv[]){
         print_usage();
         return 1;
     }
+    else if (!has_timing_iterations)
+    {
+        std::cerr << "No timing iterations has been specified" << std::endl;
+        std::cerr << "Setting timing iterations to 0" << std::endl;
+        print_usage();
+    }
 
 
     const char* omp_threads_env = std::getenv("OMP_NUM_THREADS");
@@ -372,7 +394,7 @@ int main(int argc, char* argv[]){
     }
     
     std::cout << "OMP_NUM_THREADS: " << omp_num_threads << std::endl;
-    std::cout << "Number of Iterations for timing: " << TIMING_ITERATIONS << std::endl;
+    std::cout << "Number of Iterations for timing: " << timing_iterations << std::endl;
 
 
     if (endsWithGZ(filename))
@@ -410,7 +432,7 @@ int main(int argc, char* argv[]){
                                                                                                                                                                            MAX_ITER, 
                                                                                                                                                                            TOL,
                                                                                                                                                                            SEED, 
-                                                                                                                                                                           TIMING_ITERATIONS, 
+                                                                                                                                                                           timing_iterations, 
                                                                                                                                                                            data);
 
     // std::cout << "Kmeans all timings in milliseconds" << std::endl;
@@ -468,7 +490,7 @@ int main(int argc, char* argv[]){
             {
                 std::cout << "OMP_NUM_THREADS" << "\t" << "FIT_TIME" << "\t" << "NUM_ITERATIONS" << std::endl;
                 outFile << "OMP_NUM_THREADS" << "\t" << "FIT_TIME" << "\t" << "NUM_ITERATIONS" << std::endl;
-                for (int i = 0; i < TIMING_ITERATIONS; ++i)
+                for (int i = 0; i < timing_iterations; ++i)
                 {
                     std::cout << omp_num_threads << "\t" << Parallel_KMeans_timings[i] << "\t" << Parallel_KMeans_iterations[i] << std::endl;
                     outFile << omp_num_threads << "\t" << Parallel_KMeans_timings[i] << "\t" << Parallel_KMeans_iterations[i] << std::endl;
@@ -477,7 +499,7 @@ int main(int argc, char* argv[]){
             else
             {
                 outFile << "OMP_NUM_THREADS" << "\t" << "FIT_TIME" << "\t" << "NUM_ITERATIONS" << std::endl;
-                for (int i = 0; i < TIMING_ITERATIONS; ++i)
+                for (int i = 0; i < timing_iterations; ++i)
                 {
                     outFile << omp_num_threads << "\t" << Parallel_KMeans_timings[i] << "\t" << Parallel_KMeans_iterations[i] << std::endl;
                 }
@@ -500,7 +522,7 @@ int main(int argc, char* argv[]){
             if (verbose)
             {
 
-                for (int i = 0; i < TIMING_ITERATIONS; ++i)
+                for (int i = 0; i < timing_iterations; ++i)
                 {
                     std::cout << omp_num_threads << "\t" << Parallel_KMeans_timings[i] << "\t" << Parallel_KMeans_iterations[i] << std::endl;
                     outFile << omp_num_threads << "\t" << Parallel_KMeans_timings[i] << "\t" << Parallel_KMeans_iterations[i] << std::endl;
@@ -508,7 +530,7 @@ int main(int argc, char* argv[]){
             }
             else
             {
-                for (int i = 0; i < TIMING_ITERATIONS; ++i)
+                for (int i = 0; i < timing_iterations; ++i)
                 {
                     outFile << omp_num_threads << "\t" << Parallel_KMeans_timings[i] << "\t" << Parallel_KMeans_iterations[i] << std::endl;
                 }
