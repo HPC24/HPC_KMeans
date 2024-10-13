@@ -14,6 +14,10 @@ add_library(Parallel_KMeansLib
             STATIC
             Parallel_KMeans.cpp)
 
+set_target_properties(Parallel_KMeansLib 
+                    PROPERTIES 
+                    POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries(Parallel_KMeansLib
                     PRIVATE 
                     OpenMP::OpenMP_CXX)
@@ -37,7 +41,9 @@ target_compile_definitions(KMeans
 
 
 # Tests executable, linking to KMeansLib for access to KMeans functions
-add_executable(Tests Tests.cpp)
+add_library(Tests 
+            STATIC
+            Tests.cpp)
 
 target_link_libraries(Tests
                     PRIVATE 
@@ -45,4 +51,3 @@ target_link_libraries(Tests
                     KMeansLib
                     OpenMP::OpenMP_CXX
                     ZLIB::ZLIB)
-

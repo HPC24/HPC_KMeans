@@ -43,7 +43,7 @@ PROFILING_RESULTS_DIR="vtune_results"
 ANALYSIS_TYPE="hotspots"
 
 # Paths
-EXECUTABLE="KMeans"
+EXECUTABLE="src/KMeans"
 DATA="/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data/openml/openml.org/data/v1/download/52667.gz"
 #OUTPUT_DIR="./src/out"
 #SOURCE_DIR="./src"
@@ -69,7 +69,7 @@ else
     #CXX_COMPILER_FLAGS="$CXX_COMPILER_FLAGS -march=native -mtune=native"
 fi
 
-COMPILER_OPTIMIZATION=$(echo ${CXX_FLAGS} | grep -o '\-O[^-]*')
+COMPILER_OPTIMIZATION=$(echo ${CXX_COMPILER_FLAGS} | grep -o '\-O[^-]*')
 echo "Optimization Flag: ${COMPILER_OPTIMIZATION}"
 
 # Paths of the Output files, Build directory, output directory (timings) and the VTune results directory
@@ -95,6 +95,7 @@ fi
 module purge
 module add slurm
 module add zlib/1.3.1
+module add cmake/3.27.9
 module add intel-oneapi-vtune/2024.1.0
 
 if [ $CXX_COMPILER == "g++" ]; then
