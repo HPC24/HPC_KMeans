@@ -92,7 +92,7 @@ void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& d
 
     // initiaize the labels of the points
     std::vector<int> labels_new(rows, 0);
-    this->labels = std::move(labels);
+    this->labels = std::move(labels_new);
 
     initializeCentroids(data);
     int iter = 1;
