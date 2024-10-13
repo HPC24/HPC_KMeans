@@ -20,7 +20,7 @@ using IMAGE_DATA_TYPE = float;
 using ITYPE = std::size_t;
 
 // Image size of the MNIST data set
-const int IMAGE_SIZE = 28 * 28;
+const ITYPE IMAGE_SIZE = 28 * 28;
 
 // Parameters for the KMeans Algorithm
 const double TOL = 1e-9;
@@ -89,7 +89,7 @@ void readImagesAndLabelsGzip(const char* filename, std::vector<std::vector<float
         for (const char* ptr = buffer; *ptr != '\0'; ++ptr)
         {
             bool match = true;
-            for (int i = 0; i < std::strlen(start); ++i)
+            for (std::size_t i = 0; i < std::strlen(start); ++i)
             {
                 if (std::tolower(static_cast<unsigned char>(ptr[i])) != std::tolower(static_cast<unsigned char>(start[i])))
                 {
@@ -335,7 +335,7 @@ int main(int argc, char* argv[]){
         {
             if (i + 1 < argc && argv[i + 1][0] != '-')
             {
-                timing_iterations = std::stoi(argv[i]);
+                timing_iterations = std::stoi(argv[++i]);
                 std::cout << "Set Timing iterations: " << timing_iterations << std::endl; 
                 has_timing_iterations = true;
             }
@@ -374,9 +374,9 @@ int main(int argc, char* argv[]){
     }
     else if (!has_timing_iterations)
     {
-        std::cerr << "No timing iterations has been specified" << std::endl;
-        std::cerr << "Setting timing iterations to 0" << std::endl;
+        std::cerr << "No timing iterations have been specified" << std::endl;
         print_usage();
+        return 1;
     }
 
 
@@ -450,7 +450,7 @@ int main(int argc, char* argv[]){
 
     std::cout << "Parallel Kmeans all timings in milliseconds" << std::endl;
 
-    for (int i = 0; i < Parallel_KMeans_timings.size(); ++i)
+    for (std::size_t i = 0; i < Parallel_KMeans_timings.size(); ++i)
     {
         std::cout << Parallel_KMeans_timings[i] << " ";
     }

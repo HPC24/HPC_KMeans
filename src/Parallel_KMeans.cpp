@@ -91,11 +91,11 @@ void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& d
     #endif
 
     // initiaize the labels of the points
-    std::vector<int> labels(rows, 0);
+    std::vector<int> labels_new(rows, 0);
     this->labels = std::move(labels);
 
     initializeCentroids(data);
-    IType iter = 1;
+    int iter = 1;
 
     for (iter; iter < this->max_iter + 1; ++iter){
 
@@ -118,7 +118,7 @@ void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& d
         
     }
 
-    if (iter == this->max_iter + 1)
+    if (iter == this->max_iter)
     {
         std::cout << "Maximum number of iterations has been reached" << std::endl;
         std::cout << "Maximum number of iterations: " << this->max_iter << std::endl;
@@ -141,16 +141,16 @@ std::vector<int> Parallel_KMeans<FType, IType>::predict(std::vector<std::vector<
     std::vector<int> new_labels(new_data.size(), 0);
 
     # pragma omp parallel for default(none) shared(new_labels, new_data, COLS, centroids)
-    for (int point = 0; point < new_data.size(); ++point)
+    for (IType point = 0; point < new_data.size(); ++point)
     {
         FType min_distance = std::numeric_limits<FType>::max();
         int best_centroid_idx = 0;
 
-        for (int centroid = 0; centroid < centroids.size(); ++centroid)
+        for (IType centroid = 0; centroid < centroids.size(); ++centroid)
         {
             FType distance = 0;
 
-            for (int col_idx = 0; col_idx < COLS; ++col_idx)
+            for (IType col_idx = 0; col_idx < COLS; ++col_idx)
             {
                 FType diff = new_data[point][col_idx] - centroids[centroid][col_idx];
                 distance += diff * diff;
@@ -179,11 +179,10 @@ void Parallel_KMeans<FType, IType>::assignCentroids(
     IType cols
 ) {
 
-    double inertia = 0; 
-    int n_cluster = this->n_cluster;
+    double inertia_shared = 0; 
 
     // find the new centroid for every data point
-    #pragma omp parallel for default(none) shared(data, rows, cols, n_cluster, labels, centroids) reduction( +: inertia)
+    #pragma omp parallel for default(none) shared(data, rows, cols, n_cluster, labels, centroids) reduction( +: inertia_shared)
     for (IType point = 0; point < rows; ++point)
     {
         
@@ -191,7 +190,7 @@ void Parallel_KMeans<FType, IType>::assignCentroids(
         FType min_distance = std::numeric_limits<FType>::max();
         int best_centroid_idx = 0;
 
-        for (int centroid_idx = 0; centroid_idx < n_cluster; ++centroid_idx){
+        for (IType centroid_idx = 0; centroid_idx < n_cluster; ++centroid_idx){
 
                 FType distance = 0;
 
@@ -214,10 +213,10 @@ void Parallel_KMeans<FType, IType>::assignCentroids(
         }
 
         labels[point] = best_centroid_idx;
-        inertia += std::sqrt(min_distance);
+        inertia_shared += std::sqrt(min_distance);
     }
 
-    this->inertia = inertia;
+    this->inertia = inertia_shared;
 
 
     #ifdef DEBUG
@@ -249,7 +248,7 @@ void Parallel_KMeans<FType, IType>::updateCentroids(
         std::fill(centroid.begin(), centroid.end(), 0.0);
     }
 
-    std::vector<IType> counts(this->n_cluster, 0);
+    std::vector<int> counts(this->n_cluster, 0);
     const int n_clusters = this->n_cluster;
 
     #pragma omp parallel default(none) shared(counts, data, rows, cols, n_clusters, new_centroids, labels)
@@ -347,10 +346,10 @@ bool Parallel_KMeans<FType, IType>::calculateChange(std::vector<std::vector<FTyp
     #ifdef DEBUG
     std::cout << "Calculate change this centroids " << std::endl;
 
-    for (int i = 0; i < this->centroids.size(); ++i)
+    for (IType i = 0; i < this->centroids.size(); ++i)
     {
         
-        for (int j = 0; j < this->centroids[0].size(); ++j)
+        for (IType j = 0; j < this->centroids[0].size(); ++j)
         {
             std::cout << this->centroids[i][j] << " ";
         }
@@ -360,10 +359,10 @@ bool Parallel_KMeans<FType, IType>::calculateChange(std::vector<std::vector<FTyp
 
      std::cout << "Calculate change new centroids " << std::endl;
 
-    for (int i = 0; i < new_centroids.size(); ++i)
+    for (IType i = 0; i < new_centroids.size(); ++i)
     {
         
-        for (int j = 0; j < new_centroids[0].size(); ++j)
+        for (IType j = 0; j < new_centroids[0].size(); ++j)
         {
             std::cout << new_centroids[i][j] << " ";
         }

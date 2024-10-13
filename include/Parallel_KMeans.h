@@ -15,10 +15,10 @@ public:
 
     const int n_cluster;
     const int max_iter;
-    int n_iter;
     const double tol;
-    double inertia;
     std::optional<int> seed;
+    int n_iter;
+    double inertia;
     std::mt19937 gen;
 
     std::vector<std::vector<FType>> centroids;
