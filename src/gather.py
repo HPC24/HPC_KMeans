@@ -33,8 +33,10 @@ def combine_results(data_directories: list) -> list[pd.DataFrame]:
         
         directory = pathlib.Path(directory)
         assert directory.is_dir(), f"{directory} does not exist"
+        assert any(directory.iterdir()), f"{directory} is empty"
         
-        for file in directory.glob("*.txt"):
+        for file in directory.glob("*timings.txt"):
+            print(f"Processing Data File: {file}")
             df = pd.read_csv(file, sep = "\t").assign(parameters = lambda df_: [str(file.stem).replace("_timings", "")] * df_.shape[0])
             dfs.append(df)
             
