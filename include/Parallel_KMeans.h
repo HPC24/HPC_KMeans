@@ -7,8 +7,7 @@
 #include <concepts>
 #include <optional>
 
-template <typename FType, typename IType = std::size_t>
-
+template <std::floating_point FType, std::integral IType = std::size_t>
 class Parallel_KMeans {
 
 public:
@@ -26,7 +25,7 @@ public:
 
     Parallel_KMeans(const int n_cluster, const int max_iter, const double tol, std::optional<int> seed = std::nullopt);
     void fit(const std::vector<std::vector<FType>>& data);
-    std::vector<int> predict(std::vector<std::vector<FType>>& new_data);
+    std::vector<int> predict(const std::vector<std::vector<FType>>& new_data);
 
 private:
     

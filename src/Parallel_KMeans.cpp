@@ -5,7 +5,7 @@
 #include <omp.h>
 #include <optional>
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 Parallel_KMeans<FType, IType>::Parallel_KMeans(const int n_cluster, const int max_iter, const double tol, std::optional<int> seed)
     : n_cluster{n_cluster},
     max_iter{max_iter},
@@ -31,7 +31,7 @@ Parallel_KMeans<FType, IType>::Parallel_KMeans(const int n_cluster, const int ma
 
     }
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void Parallel_KMeans<FType, IType>::initializeCentroids(const std::vector<std::vector<FType>>& data){
 
     // get the random initial centroids form the intial data
@@ -45,7 +45,7 @@ void Parallel_KMeans<FType, IType>::initializeCentroids(const std::vector<std::v
 
 }
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void Parallel_KMeans<FType, IType>::ReinitializeCentroids(
     const std::vector<std::vector<FType>>& data, 
     std::vector<std::vector<FType>>& new_centroids, 
@@ -59,7 +59,7 @@ void Parallel_KMeans<FType, IType>::ReinitializeCentroids(
 
 }
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& data){
 
     // set the constant row and col size to determine later loop iterations
@@ -128,8 +128,8 @@ void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& d
 
 }
 
-template <typename FType, typename IType>
-std::vector<int> Parallel_KMeans<FType, IType>::predict(std::vector<std::vector<FType>>& new_data){
+template <std::floating_point FType, std::integral IType>
+std::vector<int> Parallel_KMeans<FType, IType>::predict(const std::vector<std::vector<FType>>& new_data){
 
     const int COLS = new_data.empty() ? 0: new_data[0].size();
     if (COLS == 0)
@@ -172,7 +172,7 @@ std::vector<int> Parallel_KMeans<FType, IType>::predict(std::vector<std::vector<
 
 }
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void Parallel_KMeans<FType, IType>::assignCentroids(
     const std::vector<std::vector<FType>>& data, 
     IType rows, 
@@ -233,7 +233,7 @@ void Parallel_KMeans<FType, IType>::assignCentroids(
 }
 
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void Parallel_KMeans<FType, IType>::updateCentroids(
     const std::vector<std::vector<FType>>& data, 
     std::vector<std::vector<FType>>& new_centroids,
@@ -340,7 +340,7 @@ void Parallel_KMeans<FType, IType>::updateCentroids(
 }
 
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 bool Parallel_KMeans<FType, IType>::calculateChange(std::vector<std::vector<FType>>& new_centroids, const IType cols){
 
     #ifdef DEBUG
@@ -405,3 +405,7 @@ bool Parallel_KMeans<FType, IType>::calculateChange(std::vector<std::vector<FTyp
 
  
 template class Parallel_KMeans<float, std::size_t>;
+template class Parallel_KMeans<float, unsigned int>;
+template class Parallel_KMeans<double, std::size_t>;
+template class Parallel_KMeans<double, unsigned int>;
+

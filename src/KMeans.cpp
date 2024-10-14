@@ -7,7 +7,7 @@
 
 
 // generate the seed randomly if it was not provided
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 KMeans<FType, IType>::KMeans(const int n_cluster, const int max_iter, const double tol, std::optional<int> seed)
     : n_cluster{n_cluster},
     max_iter{max_iter},
@@ -19,21 +19,21 @@ KMeans<FType, IType>::KMeans(const int n_cluster, const int max_iter, const doub
   
         std::cout << "Initialized KMeans object" << std::endl;
         std::cout << "Number of clusters: " << this->n_cluster << std::endl;
-        std::cout << "Max Iterations: " << this-> max_iter << std::endl;
+        std::cout << "Max Iterations: " << this->max_iter << std::endl;
         std::cout << "Tolerance: " << this->tol << std::endl;
 
-        if (seed.has_value())
+        if (this->seed.has_value())
         {
             std::cout << "Seed: " << this->seed.value() << std::endl;
         }
-        else if (!seed.has_value())
+        else if (!this->seed.has_value())
         {
             std::cout << "Seed was initialized randomly " << std::endl;
         }
 
     }
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void KMeans<FType, IType>::initializeCentroids(const std::vector<std::vector<FType>>& data){
 
     // get the random initial centroids form the intial data
@@ -47,7 +47,7 @@ void KMeans<FType, IType>::initializeCentroids(const std::vector<std::vector<FTy
 
 }
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void KMeans<FType, IType>::ReinitializeCentroids(const std::vector<std::vector<FType>>& data, std::vector<std::vector<FType>>& new_centroids, int cluster_idx){
 
     // get the random initial centroids form the intial data
@@ -58,7 +58,7 @@ void KMeans<FType, IType>::ReinitializeCentroids(const std::vector<std::vector<F
 
 }
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& data){
 
     // set the constant row and col size to determine later loop iterations
@@ -126,10 +126,10 @@ void KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& data){
 
 }
 
-template <typename FType, typename IType>
-std::vector<int> KMeans<FType, IType>::predict(std::vector<std::vector<FType>>& new_data){
+template <std::floating_point FType, std::integral IType>
+std::vector<int> KMeans<FType, IType>::predict(const std::vector<std::vector<FType>>& new_data){
 
-    const int COLS = new_data.empty() ? 0: new_data[0].size();
+    const IType COLS = new_data.empty() ? 0: new_data[0].size();
     if (COLS == 0)
     {
         std::cerr << "Data vector is empty" << std::endl;
@@ -169,7 +169,7 @@ std::vector<int> KMeans<FType, IType>::predict(std::vector<std::vector<FType>>& 
 
 }
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void KMeans<FType, IType>::assignCentroids(
     const std::vector<std::vector<FType>>& data, 
     IType rows, 
@@ -229,7 +229,7 @@ void KMeans<FType, IType>::assignCentroids(
 }
 
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 void KMeans<FType, IType>::updateCentroids(const std::vector<std::vector<FType>>& data, std::vector<std::vector<FType>>& new_centroids, const IType rows, const IType cols){
 
     // First the new centroids need to be set to zero every iteration
@@ -307,7 +307,7 @@ void KMeans<FType, IType>::updateCentroids(const std::vector<std::vector<FType>>
 }
 
 
-template <typename FType, typename IType>
+template <std::floating_point FType, std::integral IType>
 bool KMeans<FType, IType>::calculateChange(std::vector<std::vector<FType>>& new_centroids, const IType cols){
 
     #ifdef DEBUG
@@ -372,3 +372,6 @@ bool KMeans<FType, IType>::calculateChange(std::vector<std::vector<FType>>& new_
 
  
 template class KMeans<float, std::size_t>;
+template class KMeans<float, unsigned int>;
+template class KMeans<double, std::size_t>;
+template class KMeans<double, unsigned int>;
