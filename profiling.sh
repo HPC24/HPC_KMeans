@@ -52,7 +52,7 @@ DATA="/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data/openml/openml.org/d
 CXX_COMPILER="g++"
 CXX_STANDARD="-std=c++20"
 CXX_COMPILER_FLAGS="-O3"
-DISABLE_ARCH_OPT="OFF"
+DISABLE_ARCH_OPT="ON"
 #compile_definitions="-DCOMPILER=\"${cxx_compiler}\" -DOPTIMIZATION=3 -DARCH_OPT=\"no_archopt\""
 #LINK_LIBS="-lz -fopenmp"
 

@@ -20,7 +20,7 @@ BUILD_DIR_PREFIX="./build"
 DATA_DIR_NAME="out"
 VISUALIZATION_DIR="./Visualization"
 
-BUILD_DIRS=$(ls | grep build*)
+BUILD_DIRS=$(ls -d ${BUILD_DIR_PREFIX}* | xargs realpath)
 DATA_DIRS=$(echo "${BUILD_DIRS}" | sed "s/\([^ ]*\)/\1\/${DATA_DIR_NAME}/g")
 
 echo "Creating Visualization directory"

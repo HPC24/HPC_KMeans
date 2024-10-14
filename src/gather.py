@@ -50,8 +50,6 @@ def main():
     
     df = combine_results(cmd_args.data_directory)
     
-    
-    
     # Create the pivot table for Speed up compared to single core performance
     piv_table = df.pivot_table(
         index = "OMP_NUM_THREADS", 
@@ -93,7 +91,10 @@ def main():
     )
     
     ax1.set_xlabel("Number of OpenMP threads")
-    ax2.set_ylabel("Speed up $S_n$ w.r.t using single core")
+    ax1.set_ylabel("Speed up $S_n$ w.r.t using single core")
+    ax1.minorticks_on()
+    ax1.set_xticks(y_values)
+    ax1.set_yticks(y_values)
     ax1.legend()
     
     # calculate Compute performance (iterations/second)
@@ -115,6 +116,8 @@ def main():
     
     ax2.set_xlabel("Number of OpenMP threads")
     ax2.set_ylabel("Compute performance (iterations/second)")
+    ax2.minorticks_on()
+    ax2.set_xticks(y_values)
     ax2.legend()
     
     if cmd_args.output_directory is not None:
