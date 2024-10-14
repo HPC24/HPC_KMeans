@@ -3,8 +3,8 @@
 #SBATCH --account=kurs_2024_sose_hpc
 #SBATCH --reservation=hpc_course_sose2024
  
-#SBATCH --job-name=
-#SBATCH --time=0-00:07:00
+#SBATCH --job-name=profiling
+#SBATCH --time=0-04:00:00
 #SBATCH --partition=single
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -23,13 +23,13 @@ CMAKE_BUILD_TYPE="Release"
 PROFILING_THREADS=1
 
 # Number of iterations used for timing the KMeans implementation
-TIMING_ITERATIONS=1
+TIMING_ITERATIONS=20
 
 if [ ${TIMING_ITERATIONS} -eq 1 ]; then
     echo "As Timing Iterations is set to ${TIMING_ITERATIONS} running VTune"
     echo "To Time the KMeans Implementation for Different Number of OMP_NUM_THREADS set TIMING_ITERATION > 1"
-elif [ ${TIMING_ITERATIONS} -gt 1]; then
-    echo "As Timing Iterations is set to ${TIMING_ITERATIONS} running Performance for Different Number of OMP_NUM_THREADS"
+elif [ ${TIMING_ITERATIONS} -gt 1 ]; then
+    echo "As Timing Iterations is set to ${TIMING_ITERATIONS} running Performance for different Number of OMP_NUM_THREADS"
     echo "To analyse the performance of the KMeans Implementation with VTune set TIMING_ITERATIONS == 1"
 else 
     echo "TIMING_ITERATIONS set to ${TIMING_ITERATIONS} which is an invalid value needs to be >= 1"
@@ -75,7 +75,7 @@ echo "Optimization Flag: ${COMPILER_OPTIMIZATION}"
 # Paths of the Output files, Build directory, output directory (timings) and the VTune results directory
 BUILD_DIR=${BUILD_DIR}_${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}
 OUTPUT_DIR=${BUILD_DIR}/out
-OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}_timings.txt
+OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}_timings_vtune.txt
 VTUNE_OUTPUT_DIRECTORY=${BUILD_DIR}/${PROFILING_RESULTS_DIR}_OMP_${PROFILING_THREADS}_${ARCH_OPT}
 
 echo "Creating Build directory: ${BUILD_DIR}"
@@ -89,6 +89,7 @@ if [ ! -f ${OUTPUT_FILE} ]; then
     echo "Created Output File: ${OUTPUT_FILE}"
 else
     echo "${OUTPUT_FILE} already exists"
+    echo 
 fi
 
 # Start with slurm specific commands
@@ -154,7 +155,16 @@ if [ ${TIMING_ITERATIONS} -eq 1 ]; then
     echo "finished profiling"
 
 else
-
+    
+    OUTPUT_FILE=${OUTPUT_FILE/_vtune/}
+    
+    if [ ! -f ${OUTPUT_FILE} ]; then
+	touch ${OUTPUT_FILE}
+	echo "Created Output File: ${OUTPUT_FILE}"
+    else
+	echo "Output file already exists: ${OUTPUT_FILE}"
+    fi
+    
     echo "Starting timing for up to ${SLURM_CPUS_PER_TASK}"
     echo "Timing iterations: ${TIMING_ITERATIONS}"
 
