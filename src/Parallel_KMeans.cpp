@@ -193,7 +193,8 @@ void Parallel_KMeans<FType, IType>::assignCentroids(
         for (IType centroid_idx = 0; centroid_idx < n_cluster; ++centroid_idx){
 
                 FType distance = 0;
-
+	    
+	    
             for (IType coord_idx = 0; coord_idx < cols; ++coord_idx){
                 
                 FType single_distance = data[point][coord_idx] - centroids[centroid_idx][coord_idx];

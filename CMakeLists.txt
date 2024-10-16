@@ -14,12 +14,6 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-if(NOT COMPILER_OPTIMIZATION)
-    set(COMPILER_OPTIMIZATION -O0)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_OPTIMIZATION}")
-    message(STATUS "No Compiler Optimization specified set to -O0")
-endif()
-
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -28,6 +22,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG")
+
+message(STATUS "CXX Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 
 option(DISABLE_ARCH_OPT "Disable architecture-specific optimizations" OFF)
 
@@ -69,20 +67,43 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "Build Type: Debug")
     set(CXX_FLAGS "${CXX_FLAGS} -g")
     add_compile_options(-g)
+    if(NOT COMPILER_OPTIMIZATION)
+	message(STATUS "Set Compiler Optimization to -O0 for Debugging")
+	set(CXX_FLAGS "${CXX_FLAGS} -O0")
+	add_compile_options(-O0)
+    else()
+	message(STATUS "Tried adding Compiler Optimizations: ${COMPILER_OPTIMIZATION} but CMAKE_BUILD_TYPE=Debug")
+	message(STATUS "Ignored all Optimizations and added -O0")
+	set(CXX_FLAGS "${CXX_FLAGS} -O0")
+	add_compile_options(-O0)
+    endif()
+    
 
 elseif(CMAKE_BUILD_TYPE MATCHES Release)
     message(STATUS "Build Type: Release")
-
-    # Set -O3 or another flag
-    string(FIND "${COMPILER_OPTIMIZATION}" "-O" OPTIMIZATION_FOUND)
-
-    # If no optimization flag (-O1, -O2, -O3, etc.) is found, add -O3
-    if(OPTIMIZATION_FOUND EQUAL -1)
-        set(CXX_FLAGS "${CXX_FLAGS} -O3")
-        add_compile_options(-O3)
-        message(STATUS "Setting -O3 optimization flag")
+    
+    # If no optimization flag (-O0, -O1, -O2) is found, add -O3
+    if(COMPILER_OPTIMIZATION MATCHES "-O3")
+    
+	message(STATUS "Setting Optimization Flags: ${COMPILER_OPTIMIZATION}")
+        set(CXX_FLAGS "${CXX_FLAGS} ${COMPILER_OPTIMIZATION}")
+        add_compile_options(${COMPILER_OPTIMIZATION})
+        
     else()
-        message(STATUS "Optimization flag already set")
+    
+	if (NOT COMPILER_OPTIMIZATION)
+	
+	    message(STATUS "No OPTIMIZATIONS FLAG set")
+	    message(STATUS "Added -O3 to compile flags")
+	    set(CXX_FLAGS "{CXX_FLAGS} -O3")
+	    add_compile_options(-O3)
+	    
+	else()
+	
+	    message(STATUS "Release Build optimization not set to -O3 but ${COMPILER_OPTIMIZATION}")
+	    set(CXX_FLAGS "${CXX_FLAGS} ${COMPILER_OPTIMIZATION}")
+    	    add_compile_options(${COMPILER_OPTIMIZATION})
+    	endif()
     endif()
 endif()
 

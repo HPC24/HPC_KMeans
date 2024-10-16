@@ -20,10 +20,14 @@ BUILD_DIR="./build"
 CMAKE_BUILD_TYPE="Release"
 
 # Threads used for the Profiling
-PROFILING_THREADS=1
+PROFILING_THREADS=24
 
 # Number of iterations used for timing the KMeans implementation
 TIMING_ITERATIONS=20
+
+# if SIMD is added in the AssignCentroids function of Parallel_KMeans function
+SIMD="SIMD"
+
 
 if [ ${TIMING_ITERATIONS} -eq 1 ]; then
     echo "As Timing Iterations is set to ${TIMING_ITERATIONS} running VTune"
@@ -51,7 +55,7 @@ DATA="/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data/openml/openml.org/d
 # Compiler Flags
 CXX_COMPILER="g++"
 CXX_STANDARD="-std=c++20"
-CXX_COMPILER_FLAGS="-O0"
+CXX_COMPILER_FLAGS="-O2"
 DISABLE_ARCH_OPT="OFF"
 #compile_definitions="-DCOMPILER=\"${cxx_compiler}\" -DOPTIMIZATION=3 -DARCH_OPT=\"no_archopt\""
 #LINK_LIBS="-lz -fopenmp"
@@ -89,7 +93,7 @@ if [ ! -f ${OUTPUT_FILE} ]; then
     echo "Created Output File: ${OUTPUT_FILE}"
 else
     echo "${OUTPUT_FILE} already exists"
-    echo 
+
 fi
 
 # Start with slurm specific commands
@@ -121,20 +125,32 @@ echo "Current working directory is `pwd`"
 # echo "CXX_Standard: ${CXX_STANDARD}"
 # echo "CXX Flags: ${CXX_COMPILER_FLAGS} ${LINK_LIBS}"
 
-echo "Starting CMake Build Process"
+echo "Checking if executable KMeans already exists in ${BUILD_DIR}"
+CHECK_EXECUTABLE=$(find ${BUILD_DIR} -wholename "*${EXECUTABLE}")
 
-cmake -S . -B ${BUILD_DIR} \
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
-    -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
-    -DCOMPILER_OPTIMIZATION=${COMPILER_OPTIMIZATION} \
-    -DDISABLE_ARCH_OPT=${DISABLE_ARCH_OPT}
+if [ ! -z ${CHECK_EXECUTABLE} ]; then
+    
+    echo "Executable found in ${CHECK_EXECUTABLE}"
+    echo "CMake was not executed to create a new build remove the build directory: ${BUILD_DIR}"
+    
+else
+        
+    echo "No executable found in ${BUILD_DIR}"
+    echo "Starting CMake Build Process"
 
-# ${CXX_COMPILER} ${CXX_STANDARD} ${CXX_COMPILER_FLAGS} -I ${INCLUDE_DIRECTORY} ${SOURCE_FILES} -o ${EXECUTABLE} ${LINK_LIBS}
-echo "Creating executable ${EXECUTABLE} in ${BUILD_DIR}"
+    cmake -S . -B ${BUILD_DIR} \
+	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+	-DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+	-DCOMPILER_OPTIMIZATION=${COMPILER_OPTIMIZATION} \
+	-DDISABLE_ARCH_OPT=${DISABLE_ARCH_OPT}
 
-cmake --build ${BUILD_DIR}
+    # ${CXX_COMPILER} ${CXX_STANDARD} ${CXX_COMPILER_FLAGS} -I ${INCLUDE_DIRECTORY} ${SOURCE_FILES} -o ${EXECUTABLE} ${LINK_LIBS}
+    echo "Creating executable ${EXECUTABLE} in ${BUILD_DIR}"
 
-echo "CMake finished"
+    cmake --build ${BUILD_DIR}
+
+    echo "CMake finished"
+fi
 
 if [ ${TIMING_ITERATIONS} -eq 1 ]; then
 
@@ -174,7 +190,7 @@ else
     do
         export OMP_NUM_THREADS=${N}
 
-        echo "Running Timing with ${threads} Threads"
+        echo "Running Timing with ${N} Threads"
 
         ${BUILD_DIR}/${EXECUTABLE} \
         --data ${DATA} \

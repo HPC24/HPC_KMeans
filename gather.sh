@@ -14,6 +14,9 @@
 #SBATCH --output=%u.log.%j.out
 #SBATCH --error=%u.log.%j.err
 
+# Command to move all the files from the different build directories into the ./out directory 
+# find -wholename "*out/*timings.txt" -exec cp {} ./out \;
+
 PYTHON_FILE="./src/gather.py"
 CONDA_ENV="data-science"
 BUILD_DIR_PREFIX="./build"
