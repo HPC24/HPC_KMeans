@@ -51,8 +51,8 @@ DATA="/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data/openml/openml.org/d
 # Compiler Flags
 CXX_COMPILER="g++"
 CXX_STANDARD="-std=c++20"
-CXX_COMPILER_FLAGS="-O3"
-DISABLE_ARCH_OPT="ON"
+CXX_COMPILER_FLAGS="-O0"
+DISABLE_ARCH_OPT="OFF"
 #compile_definitions="-DCOMPILER=\"${cxx_compiler}\" -DOPTIMIZATION=3 -DARCH_OPT=\"no_archopt\""
 #LINK_LIBS="-lz -fopenmp"
 
@@ -102,9 +102,11 @@ module add intel-oneapi-vtune/2024.1.0
 if [ $CXX_COMPILER == "g++" ]; then
     echo "Loading gcc compiler"
     module add gcc/13.2.0
-elif [ $CXX_COMPILER == "intel" ]; then
-    echo "Loading intel"
+elif [ $CXX_COMPILER == "icx" ]; then
+    echo "Loading intel compiler"
     module add intel-oneapi-compilers/2024.1.0
+    echo "loading intel toolchains"
+    module add toolchains/intel
 fi
 
 echo "Starting at `date`"
@@ -128,7 +130,7 @@ cmake -S . -B ${BUILD_DIR} \
     -DDISABLE_ARCH_OPT=${DISABLE_ARCH_OPT}
 
 # ${CXX_COMPILER} ${CXX_STANDARD} ${CXX_COMPILER_FLAGS} -I ${INCLUDE_DIRECTORY} ${SOURCE_FILES} -o ${EXECUTABLE} ${LINK_LIBS}
-echo "Creating execitable ${EXECUTABLE} in ${BUILD_DIR}"
+echo "Creating executable ${EXECUTABLE} in ${BUILD_DIR}"
 
 cmake --build ${BUILD_DIR}
 

@@ -9,6 +9,10 @@ add_library(KMeansLib
 set_target_properties(KMeansLib 
                     PROPERTIES 
                     POSITION_INDEPENDENT_CODE ON)
+                    
+if (CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+    target_link_libraries(KMeansLib PRIVATE stdc++)
+endif()
 
 add_library(Parallel_KMeansLib
             STATIC
@@ -17,6 +21,10 @@ add_library(Parallel_KMeansLib
 set_target_properties(Parallel_KMeansLib 
                     PROPERTIES 
                     POSITION_INDEPENDENT_CODE ON)
+                    
+if (CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+    target_link_libraries(Parallel_KMeansLib PRIVATE stdc++)
+endif()
 
 target_link_libraries(Parallel_KMeansLib
                     PRIVATE 
@@ -32,7 +40,11 @@ target_link_libraries(KMeans
                     KMeansLib
                     Parallel_KMeansLib
                     OpenMP::OpenMP_CXX
-                    ZLIB::ZLIB)  
+                    ZLIB::ZLIB) 
+                    
+if (CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+    target_link_libraries(KMeans PRIVATE stdc++)
+endif() 
 
 target_compile_definitions(KMeans
                         PRIVATE
@@ -44,6 +56,10 @@ target_compile_definitions(KMeans
 add_library(Tests 
             STATIC
             Tests.cpp)
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+    target_link_libraries(Tests PRIVATE stdc++)
+endif()
 
 target_link_libraries(Tests
                     PRIVATE 

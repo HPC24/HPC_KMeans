@@ -21,7 +21,13 @@ def parse_args():
     
     parser.add_argument("--output_dir",
                         required = True,
-                        help = "Path to the output directory where the results should be saved")
+                        help = "Path to the output directory where the results should be saved"
+                        )
+                        
+    parser.add_argument("--output_file",
+			required = True,
+			help = "Name of the output file where the results will be saved"
+			)
     
     return parser.parse_args()
 
@@ -33,26 +39,29 @@ def fit_kmeans(kmeans, data) -> float:
     kmeans.fit(data)
     
     end_time = time.perf_counter()
+    # get the fit time in ms 
+    fit_time = (end_time - start_time) * 1000
     
-    iterations = kmeans.n_iter
+    iterations = kmeans.n_iter_
     
-    return end_time, iterations
+    return fit_time, iterations
     
     
 def main():
     
+    custom_cache_dir = "/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data"
     cmd_args = parse_args()
     output_dir = pathlib.Path(cmd_args.output_dir)
     assert output_dir.is_dir(), f"{output_dir} does not exist"   
-    output_file = output_dir / "sklearn_timings.txt" 
+    output_file = output_dir / cmd_args.output_file
 
     timings = []
     iterations = []
     omp_num_threads = os.environ.get("OMP_NUM_THREADS")
     
-    print("Fetching MNIST dataset")
+    print("Fetching MNIST dataset if it is not already loaded")
     
-    mnist = fetch_openml('mnist_784', version=1)
+    mnist = fetch_openml('mnist_784', data_home = custom_cache_dir)
     data = mnist.data.to_numpy()
     
     print("Done")
@@ -82,7 +91,7 @@ def main():
          
     with open(output_file, "r") as file:
         
-        content = file.read
+        content = file.read()
         
         if not content:
             file_is_empty = True

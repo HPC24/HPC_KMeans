@@ -3,12 +3,12 @@
 #SBATCH --account=kurs_2024_sose_hpc
 #SBATCH --reservation=hpc_course_sose2024
 
-#SBATCH --job-name=profiling
+#SBATCH --job-name=gathering
 #SBATCH --time=0-00:05:00
 #SBATCH --partition=single
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=7900MB
 
 #SBATCH --output=%u.log.%j.out
@@ -22,6 +22,7 @@ VISUALIZATION_DIR="./Visualization"
 
 BUILD_DIRS=$(ls -d ${BUILD_DIR_PREFIX}* | xargs realpath)
 DATA_DIRS=$(echo "${BUILD_DIRS}" | sed "s/\([^ ]*\)/\1\/${DATA_DIR_NAME}/g")
+DATA_DIRS="${DATA_DIRS} $(realpath sklearn_timings)"
 
 echo "Creating Visualization directory"
 

@@ -33,8 +33,11 @@ option(DISABLE_ARCH_OPT "Disable architecture-specific optimizations" OFF)
 
 # only use the following compile option if Architecture Optimzation is on
 if(DISABLE_ARCH_OPT)
-
+    
+    message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID}")
     message(STATUS "Architecture optimizations DISABLED")
+    set(CXX_FLAGS "${CXX_FLAGS} -Wall -Wextra -Wshadow -pedantic")
+    add_compile_options(-Wall -Wextra -Wshadow -pedantic)		
 
 else()
 
@@ -71,7 +74,7 @@ elseif(CMAKE_BUILD_TYPE MATCHES Release)
     message(STATUS "Build Type: Release")
 
     # Set -O3 or another flag
-    string(FIND "${CXX_FLAGS}" "-O" OPTIMIZATION_FOUND)
+    string(FIND "${COMPILER_OPTIMIZATION}" "-O" OPTIMIZATION_FOUND)
 
     # If no optimization flag (-O1, -O2, -O3, etc.) is found, add -O3
     if(OPTIMIZATION_FOUND EQUAL -1)

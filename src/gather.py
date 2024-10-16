@@ -78,6 +78,9 @@ def main():
         kind = "line", 
         marker = "o", 
         grid = True,
+        alpha=0.7,
+        linewidth=2,
+        markersize=8,
         ax = ax1
     )
     
@@ -111,6 +114,9 @@ def main():
         kind = "line", 
         marker = "o", 
         grid = True,
+        alpha=0.7,
+        linewidth=2,
+        markersize=8,
         ax = ax2
     )
     
