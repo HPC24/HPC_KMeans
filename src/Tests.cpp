@@ -1,5 +1,9 @@
 #include <Tests.h>
+#ifdef USE_CONT_MEM
+#include <Cont_Mem_Parallel_KMeans.h>
+#else
 #include <Parallel_KMeans.h>
+#endif
 #include <KMeans.h>
 #include <vector>
 #include <iostream>

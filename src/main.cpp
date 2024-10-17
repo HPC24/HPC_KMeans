@@ -1,5 +1,11 @@
 #include <KMeans.h>
+
+#ifdef USE_CONT_MEM
+#include <Cont_Mem_Parallel_KMeans.h>
+#else
 #include <Parallel_KMeans.h>
+#endif
+
 #include <utils.h>
 #include <Tests.h>
 
@@ -254,6 +260,12 @@ void readImagesAndLabels(const std::string &filename, std::vector<std::vector<fl
 
 int main(int argc, char* argv[]){
 
+    #ifdef USE_CONT_MEM
+        std::cout << "Using flat array implementation of Parallel_KMeans" << std::endl;
+    #else
+        std::cout << "Using standard Parallel_KMeans implementation" << std::endl;
+    #endif
+
     if (argc == 1)
     {
         print_usage();
@@ -409,7 +421,7 @@ int main(int argc, char* argv[]){
         readImagesAndLabels<IMAGE_DATA_TYPE>(filename, data, labels, IMAGE_SIZE);
     }
 
-    //CheckLabels();
+    // CheckLabels();
 
     // std::cout << "Generating Test Data" << std::endl;
 

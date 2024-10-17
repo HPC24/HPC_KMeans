@@ -1,6 +1,12 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#ifdef USE_CONT_MEM
+#include <Cont_Mem_Parallel_KMeans.h>
+#else
+#include <Parallel_KMeans.h>
+#endif
+
 #include <vector>
 #include <iostream>
 #include <chrono>
@@ -11,7 +17,6 @@
 #include <sstream>
 #include <zlib.h>
 #include <cstring>
-#include <Parallel_KMeans.h>
 #include <KMeans.h>
 #include <omp.h>
 

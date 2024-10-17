@@ -1,6 +1,9 @@
 #!/bin/bash
 
-timing_iterations=20
+# preprocessor macros
+USE_CONT_MEM="USE_CONT_MEM"
+
+timing_iterations=3
 
 exectuable="src/KMeans"
 data="/home/joshua/Projects/HPC_Project/data/openml/openml.org/data/v1/download/52667.gz"
@@ -11,7 +14,7 @@ source_dir="./src"
 cxx_compiler="g++"
 cxx_standard="-std=c++20"
 cxx_compile_flags="-O3"
-arch_opt="OFF"
+arch_opt="ON"
 #compile_definitions="-DCOMPILER=\"${cxx_compiler}\" -DOPTIMIZATION=3 -DARCH_OPT=\"no_archopt\""
 link_libs="-lz -fopenmp"
 
@@ -25,11 +28,12 @@ if [ ${arch_opt} == "OFF" ]; then
 else
     arch_opt="arch_opt"
     echo "arch opt ON"
+    cxx_compile_flags="${cxx_compile_flags} -march=native -mtune=native"
 fi
     
 
-output_file=${output_dir}/${cxx_compiler}_${cxx_compile_flags/-/}_${arch_opt}_timings.txt
-
+output_file=${output_dir}/${cxx_compiler}_$(echo "${cxx_compile_flags}" | sed -n 's/.*-\(O[0-3]\).*/\1/p')_${arch_opt}_timings.txt
+echo "${output_file}"
 echo "Creating output directory: ${output_dir}"
 mkdir -p "${output_dir}"
 
@@ -42,8 +46,9 @@ fi
 
 
 echo "Compiling ${executable}"
+echo "Compile flags: ${cxx_compile_flags}"
 
-${cxx_compiler} ${cxx_compile_flags} ${cxx_standard} -I${include_directory} ${source_files} -o ${exectuable} ${link_libs}
+${cxx_compiler} ${cxx_compile_flags} -g ${cxx_standard} -I${include_directory} ${source_files} -D${USE_CONT_MEM} -o ${exectuable} ${link_libs}
 
 echo "Compilation done"
 

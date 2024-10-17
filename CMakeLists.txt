@@ -23,7 +23,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Reset the the CMAKE_CXX_FLAGS_RELEASE because i later set the flags based on debug
+# or reease build anyways to avoid adding the flags double
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG")
+
+if(NOT USE_CONT_MEM)
+    message(STATUS "USE_CONT_MEM not defined setting it to OFF")
+    option(USE_CONT_MEM OFF)
+else()
+    message(STATUS "Adding USE_MEM_CONT Macro to globally")
+    option(USE_CONT_MEM ${USE_CONT_MEM})
+    add_definitions(-DUSE_MEM_CONT)
+endif()
 
 message(STATUS "CXX Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 

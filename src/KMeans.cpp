@@ -271,10 +271,7 @@ void KMeans<FType, IType>::updateCentroids(const std::vector<std::vector<FType>>
 
         else
         {
-             for (IType col_idx = 0; col_idx < cols; ++col_idx)
-            {
-                ReinitializeCentroids(data, new_centroids, cluster_idx);
-            }
+            ReinitializeCentroids(data, new_centroids, cluster_idx);
         }
 
     }
