@@ -23,11 +23,10 @@ CMAKE_BUILD_TYPE="Release"
 PROFILING_THREADS=24
 
 # Number of iterations used for timing the KMeans implementation
-TIMING_ITERATIONS=20
+TIMING_ITERATIONS=1
 
-# if SIMD is added in the AssignCentroids function of Parallel_KMeans function
-SIMD="SIMD"
-
+# if USE_CONT_MEM is set the Cont_Mem_Parallel_KMeans.cpp implementation will be used 
+USE_CONT_MEM="USE_CONT_MEM"
 
 if [ ${TIMING_ITERATIONS} -eq 1 ]; then
     echo "As Timing Iterations is set to ${TIMING_ITERATIONS} running VTune"
@@ -55,7 +54,7 @@ DATA="/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data/openml/openml.org/d
 # Compiler Flags
 CXX_COMPILER="g++"
 CXX_STANDARD="-std=c++20"
-CXX_COMPILER_FLAGS="-O2"
+CXX_COMPILER_FLAGS="-O3"
 DISABLE_ARCH_OPT="OFF"
 #compile_definitions="-DCOMPILER=\"${cxx_compiler}\" -DOPTIMIZATION=3 -DARCH_OPT=\"no_archopt\""
 #LINK_LIBS="-lz -fopenmp"
@@ -80,7 +79,8 @@ echo "Optimization Flag: ${COMPILER_OPTIMIZATION}"
 BUILD_DIR=${BUILD_DIR}_${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}
 OUTPUT_DIR=${BUILD_DIR}/out
 OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}_timings_vtune.txt
-VTUNE_OUTPUT_DIRECTORY=${BUILD_DIR}/${PROFILING_RESULTS_DIR}${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_OMP_${PROFILING_THREADS}_${ARCH_OPT}
+VTUNE_OUTPUT_DIRECTORY=${BUILD_DIR}/${PROFILING_RESULTS_DIR}_${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_OMP_${PROFILING_THREADS}_${ARCH_OPT}
+
 
 echo "Creating Build directory: ${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}"
@@ -89,7 +89,7 @@ echo "Creating Output directory: ${OUTPUT_DIR}"
 mkdir -p "${OUTPUT_DIR}"
 
 if [ ! -f ${OUTPUT_FILE} ]; then
-    touch ${OUTPUT_FILE}
+    touch  ${OUTPUT_FILE}
     echo "Created Output File: ${OUTPUT_FILE}"
 else
     echo "${OUTPUT_FILE} already exists"
