@@ -32,7 +32,7 @@ if(NOT USE_CONT_MEM)
     option(USE_CONT_MEM OFF)
 else()
     message(STATUS "Adding USE_MEM_CONT Macro to globally")
-    option(USE_CONT_MEM ${USE_CONT_MEM})
+    option(USE_CONT_MEM ON)
     add_definitions(-DUSE_MEM_CONT)
 endif()
 
