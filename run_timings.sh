@@ -48,7 +48,7 @@ fi
 echo "Compiling ${executable}"
 echo "Compile flags: ${cxx_compile_flags}"
 
-${cxx_compiler} ${cxx_compile_flags} -g ${cxx_standard} -I${include_directory} ${source_files} -D${USE_CONT_MEM} -o ${exectuable} ${link_libs}
+${cxx_compiler} ${cxx_compile_flags} -g ${cxx_standard} -DSIMD_256 -I${include_directory} ${source_files} -D${USE_CONT_MEM} -o ${exectuable} ${link_libs}
 
 echo "Compilation done"
 

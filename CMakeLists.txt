@@ -36,6 +36,19 @@ else()
     add_definitions(-DUSE_MEM_CONT)
 endif()
 
+if(SIMD_256)
+    message(STATUS "Using AVX-256")
+    add_definitions(-DSIMD_256)
+elseif(SIMD_512)
+    message(STATUS "Using AVX-512")
+    add_definitions(-DSIMD_512)
+else()
+    message(STATUS "No specific SIMD directive set using default compiler optimizations")
+    add_definitions(-DNO_SIMD)
+
+endif()
+
+
 message(STATUS "CXX Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 
 option(DISABLE_ARCH_OPT "Disable architecture-specific optimizations" OFF)

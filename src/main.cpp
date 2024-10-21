@@ -260,6 +260,15 @@ void readImagesAndLabels(const std::string &filename, std::vector<std::vector<fl
 
 int main(int argc, char* argv[]){
 
+    #ifdef SIMD_256
+    std::cout << "Using SIMD-256" << std::endl; 
+    #elif defined(SIMD_512)
+    std::cout << "Using SIMD-512" << std::endl;
+    #elif defined(NO_SIMD) 
+    std::cout << "No SIMD defined" << std::endl;
+    #endif
+
+
     #ifdef USE_CONT_MEM
         std::cout << "Using flat array implementation of Parallel_KMeans" << std::endl;
     #else

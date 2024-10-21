@@ -1,9 +1,14 @@
 #include <Cont_Mem_Parallel_KMeans.h>
+#include <Aligned_Allocator.h>
+#include <SIMD_Operations.h>
+#include <Tests.h>
+
 #include <iostream>
 #include <random>
 #include <concepts>
 #include <omp.h>
 #include <optional>
+
 
 template <std::floating_point FType, std::integral IType>
 Parallel_KMeans<FType, IType>::Parallel_KMeans(const int n_cluster, const int max_iter, const double tol, std::optional<int> seed)
@@ -32,7 +37,7 @@ Parallel_KMeans<FType, IType>::Parallel_KMeans(const int n_cluster, const int ma
     }
 
 template <std::floating_point FType, std::integral IType>
-void Parallel_KMeans<FType, IType>::initializeCentroids(const std::vector<FType>& data, const IType rows, const IType cols){
+void Parallel_KMeans<FType, IType>::initializeCentroids(const std::vector<FType, AlignedAllocator<FType>>& data, const IType rows, const IType cols){
 
     // get the random initial centroids form the intial data
     std::uniform_int_distribution<> dist{0,  static_cast<int>(rows - 1)};
@@ -53,8 +58,8 @@ void Parallel_KMeans<FType, IType>::initializeCentroids(const std::vector<FType>
 
 template <std::floating_point FType, std::integral IType>
 void Parallel_KMeans<FType, IType>::ReinitializeCentroids(
-    const std::vector<FType>& data, 
-    std::vector<FType>& new_centroids, 
+    const std::vector<FType, AlignedAllocator<FType>>& data, 
+    std::vector<FType, AlignedAllocator<FType>>& new_centroids, 
     int cluster_idx,
     const IType rows, 
     const IType cols){
@@ -87,7 +92,7 @@ void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& d
     //std::cout << "Cols:" << cols << std::endl;
     
 
-    std::vector<FType> new_data(rows * cols, 0);
+    std::vector<FType, AlignedAllocator<FType>> new_data(rows * cols, 0);
 
     // fill the new flat array with values
     for (IType row = 0; row < rows; ++row)
@@ -100,11 +105,20 @@ void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& d
         }
     }
 
+    if (is_memory_aligned(new_data))
+    {
+        std::cout << "new_data is memory aligned" << std::endl;
+    }
+    else
+    {
+        std::cout << "new_data is NOT memory aligned" << std::endl;
+    }
+
     //std::cout << "New_data expected size:" << rows * cols << std::endl;
     //std::cout << "Actual size:" << new_data.size() << std::endl;
 
     // initialize the new centroids and the centroid member variables with 0's
-    std::vector<FType> new_centroids(n_cluster * cols, 0);
+    std::vector<FType, AlignedAllocator<FType>> new_centroids(n_cluster * cols, 0);
     centroids = new_centroids;
 
     #ifdef DEBUG
@@ -178,6 +192,7 @@ std::vector<int> Parallel_KMeans<FType, IType>::predict(const std::vector<std::v
     {
         FType min_distance = std::numeric_limits<FType>::max();
         int best_centroid_idx = 0;
+        const FType* new_data_ptr = new_data[point].data();
 
         for (IType centroid = 0; centroid < n_cluster; ++centroid)
         {
@@ -185,11 +200,15 @@ std::vector<int> Parallel_KMeans<FType, IType>::predict(const std::vector<std::v
             const FType* centroids_ptr = &centroids[centroid * COLS];
             
 
-            for (IType col_idx = 0; col_idx < COLS; ++col_idx)
-            {
-                FType diff = new_data[point][col_idx] - centroids_ptr[col_idx];
-                distance += diff * diff;
-            }
+            distance = process(new_data_ptr, centroids_ptr, COLS);
+
+            // for (IType col_idx = 0; col_idx < COLS; ++col_idx)
+            // {
+                
+
+            //     // FType diff = new_data[point][col_idx] - centroids_ptr[col_idx];
+            //     // distance += diff * diff;
+            // }
 
             distance = std::sqrt(distance);
 
@@ -209,7 +228,7 @@ std::vector<int> Parallel_KMeans<FType, IType>::predict(const std::vector<std::v
 
 template <std::floating_point FType, std::integral IType>
 void Parallel_KMeans<FType, IType>::assignCentroids(
-    const std::vector<FType>& data, 
+    const std::vector<FType, AlignedAllocator<FType>>& data, 
     IType rows, 
     IType cols
 ) {
@@ -217,7 +236,7 @@ void Parallel_KMeans<FType, IType>::assignCentroids(
     double inertia_shared = 0; 
 
     // find the new centroid for every data point
-    #pragma omp parallel for default(none) shared(data, rows, cols, n_cluster, labels, centroids) reduction( +: inertia_shared)
+    #pragma omp parallel for default(none) shared(data, rows, cols, n_cluster, labels, centroids) reduction( +: inertia_shared) schedule(static)
     for (IType point = 0; point < rows; ++point)
     {
         
@@ -232,14 +251,21 @@ void Parallel_KMeans<FType, IType>::assignCentroids(
                 FType distance = 0;
                 // each thread gets a ptr to the current centroid it is processing 
                 const FType* centroid_ptr = &centroids[centroid_idx * cols];
-	    
+
+                #if defined(SIMD_256) || defined(SIMD_512)
+                distance = process(data_ptr, centroid_ptr, cols);
+                #endif
+
+            #ifdef NO_SIMD
             #pragma omp simd
-            for (IType coord_idx = 0; coord_idx < cols; ++coord_idx){
-                
-                FType single_distance = data_ptr[coord_idx] - centroid_ptr[coord_idx];
-                distance += single_distance * single_distance;
+            for (IType coord_idx = 0; coord_idx < cols; ++coord_idx)
+            {
+
+                 FType single_distance = data_ptr[coord_idx] - centroid_ptr[coord_idx];
+                 distance += single_distance * single_distance;
 
             }
+            #endif
 
             // calcuate the sqrt of the distance later once min distance is found so save some computation time
             // fiding the min distance does not change 
@@ -275,8 +301,8 @@ void Parallel_KMeans<FType, IType>::assignCentroids(
 
 template <std::floating_point FType, std::integral IType>
 void Parallel_KMeans<FType, IType>::updateCentroids(
-    const std::vector<FType>& data, 
-    std::vector<FType>& new_centroids,
+    const std::vector<FType, AlignedAllocator<FType>>& data, 
+    std::vector<FType, AlignedAllocator<FType>>& new_centroids,
     const IType rows, 
     const IType cols)
     {
@@ -381,7 +407,7 @@ void Parallel_KMeans<FType, IType>::updateCentroids(
 
 
 template <std::floating_point FType, std::integral IType>
-bool Parallel_KMeans<FType, IType>::calculateChange(std::vector<FType>& new_centroids, const IType cols){
+bool Parallel_KMeans<FType, IType>::calculateChange(std::vector<FType, AlignedAllocator<FType>>& new_centroids, const IType cols){
 
     #ifdef DEBUG
     std::cout << "Calculate change this centroids " << std::endl;
