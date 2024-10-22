@@ -23,10 +23,25 @@ CMAKE_BUILD_TYPE="Release"
 PROFILING_THREADS=24
 
 # Number of iterations used for timing the KMeans implementation
-TIMING_ITERATIONS=1
+TIMING_ITERATIONS=20
 
 # if USE_CONT_MEM is set the Cont_Mem_Parallel_KMeans.cpp implementation will be used 
 USE_CONT_MEM="USE_CONT_MEM"
+
+# if SIMD is set a custom written SIMD instruction set will be used for the KMeans Algorithm
+SIMD="_SIMD_512"
+
+# if OMP_PROC_BIND=close it ensures that threads are bound to processors (cores) that are in the same NUMA Domain
+# thus reducing the latency it takes for the threads in the same NUMA domain to access the memory
+OMP_PROC_BIND="close"
+
+if [ -z ${OMP_PROC_BIND} ]; then
+    echo "OMP_PROC_BIND not set ${OMP_PROC_BIND}"
+    OMP_PROC_BIND_NAME=""
+else 
+    echo "OMP_PROC_BIND set to: ${OMP_PROC_BIND}"
+    OMP_PROC_BIND_NAME="_NUMA"
+fi
 
 if [ ${TIMING_ITERATIONS} -eq 1 ]; then
     echo "As Timing Iterations is set to ${TIMING_ITERATIONS} running VTune"
@@ -41,6 +56,8 @@ else
 fi
 
 
+
+
 # VTune Parameters
 PROFILING_RESULTS_DIR="vtune_results"
 ANALYSIS_TYPE="hotspots"
@@ -52,7 +69,7 @@ DATA="/scratch/kurs_2024_sose_hpc/kurs_2024_sose_hpc_11/data/openml/openml.org/d
 #SOURCE_DIR="./src"
 
 # Compiler Flags
-CXX_COMPILER="g++"
+CXX_COMPILER="icx"
 CXX_STANDARD="-std=c++20"
 CXX_COMPILER_FLAGS="-O3"
 DISABLE_ARCH_OPT="OFF"
@@ -76,10 +93,10 @@ COMPILER_OPTIMIZATION=$(echo ${CXX_COMPILER_FLAGS} | grep -o '\-O[^-]*')
 echo "Optimization Flag: ${COMPILER_OPTIMIZATION}"
 
 # Paths of the Output files, Build directory, output directory (timings) and the VTune results directory
-BUILD_DIR=${BUILD_DIR}_${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}
+BUILD_DIR=${BUILD_DIR}_${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}${SIMD}${OMP_PROC_BIND_NAME}
 OUTPUT_DIR=${BUILD_DIR}/out
-OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}_timings_vtune.txt
-VTUNE_OUTPUT_DIRECTORY=${BUILD_DIR}/${PROFILING_RESULTS_DIR}_${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_OMP_${PROFILING_THREADS}_${ARCH_OPT}
+OUTPUT_FILE=${OUTPUT_DIR}/${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}_${ARCH_OPT}${SIMD}${OMP_PROC_BIND_NAME}_timings_vtune.txt
+VTUNE_OUTPUT_DIRECTORY=${BUILD_DIR}/${PROFILING_RESULTS_DIR}_${CXX_COMPILER}_${COMPILER_OPTIMIZATION/-/}${SIMD}${OMP_PROC_BIND_NAME}_OMP_${PROFILING_THREADS}_${ARCH_OPT}
 
 
 echo "Creating Build directory: ${BUILD_DIR}"
@@ -142,7 +159,9 @@ else
 	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
 	-DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
 	-DCOMPILER_OPTIMIZATION=${COMPILER_OPTIMIZATION} \
-	-DDISABLE_ARCH_OPT=${DISABLE_ARCH_OPT}
+	-DDISABLE_ARCH_OPT=${DISABLE_ARCH_OPT} \
+	-DUSE_CONT_MEM=${USE_CONT_MEM} \
+	-DSIMD=${SIMD:1}
 
     # ${CXX_COMPILER} ${CXX_STANDARD} ${CXX_COMPILER_FLAGS} -I ${INCLUDE_DIRECTORY} ${SOURCE_FILES} -o ${EXECUTABLE} ${LINK_LIBS}
     echo "Creating executable ${EXECUTABLE} in ${BUILD_DIR}"
@@ -156,7 +175,8 @@ if [ ${TIMING_ITERATIONS} -eq 1 ]; then
 
     echo "Creating Vtune result directory ${VTUNE_OUTPUT_DIRECTORY}"
     mkdir -p "${VTUNE_OUTPUT_DIRECTORY}"
-
+    
+    
     echo "Starting Vtune"
     echo "Collecting: ${ANALYSIS_TYPE}"
     echo "OMP_NUM_THREADS: ${PROFILING_THREADS}"
@@ -182,6 +202,15 @@ else
     else
 	echo "Output file already exists: ${OUTPUT_FILE}"
     fi
+    
+    if [[ ${OMP_PROC_BIND =~ ^(false|true|close|spread|master)$ ]]; then 
+	
+	echo "Setting OMP_PROC_BIND to ${OMP_PROC_BIND}"
+	export OMP_PROC_BIND=${OMP_PROC_BIND}
+    else
+	echo "OMP_PROC_BIND Value: ${OMP_PROC_BIND} is not allowed"
+    fi
+
     
     echo "Starting timing for up to ${SLURM_CPUS_PER_TASK}"
     echo "Timing iterations: ${TIMING_ITERATIONS}"
