@@ -50,6 +50,18 @@ def main():
     
     df = combine_results(cmd_args.data_directory)
     
+    color_mapping = {
+    'g++_O3_arch_opt': '#FF0000',  # Red
+    'g++_O3_no_archopt': '#0000FF',  # Blue
+    'icx_O3_arch_opt': '#FFFF00',  # Yellow
+    'icx_O3_no_archopt': '#008000',  # Green
+    'g++_O3_arch_opt_SIMD_512': '#00FFFF',  # Cyan
+    'icx_O3_arch_opt_SIMD_512': '#FF00FF',  # Magenta
+    'g++_O3_arch_opt_SIMD_512_NUMA': '#FFA500',  # Orange
+    'icx_O3_arch_opt_SIMD_512_NUMA': '#800080',  # Purple
+    'sklearn': '#808080'   # Grey
+}
+    
     # Create the pivot table for Speed up compared to single core performance
     piv_table = df.pivot_table(
         index = "OMP_NUM_THREADS", 
@@ -84,7 +96,7 @@ def main():
         linewidth=2,
         markersize=8,
         ax = ax1,
-        cmap = cmap
+        color = [color_mapping[label] for label in piv_table.index]
     )
     
     ax1.plot(
@@ -121,7 +133,7 @@ def main():
         linewidth=2,
         markersize=8,
         ax = ax2, 
-        cmap = cmap
+        color = [color_mapping[label] for label in piv_table_iterations.index]
     )
     
     ax2.set_xlabel("Number of OpenMP threads")
