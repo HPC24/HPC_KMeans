@@ -65,7 +65,7 @@ def main():
     
     y_values = np.arange(1, piv_table.index[-1] + 1, 1)
     
-    cmap = plt.get_cmap("tab10")
+    cmap = plt.get_cmap("Set1")
     
     # create plots
     fig, (ax1, ax2) = plt.subplots(
