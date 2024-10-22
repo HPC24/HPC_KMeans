@@ -65,6 +65,8 @@ def main():
     
     y_values = np.arange(1, piv_table.index[-1] + 1, 1)
     
+    cmap = plt.get_cmap("tab10")
+    
     # create plots
     fig, (ax1, ax2) = plt.subplots(
         1, 2, 
@@ -81,7 +83,8 @@ def main():
         alpha=0.7,
         linewidth=2,
         markersize=8,
-        ax = ax1
+        ax = ax1,
+        cmap = cmap
     )
     
     ax1.plot(
@@ -117,7 +120,8 @@ def main():
         alpha=0.7,
         linewidth=2,
         markersize=8,
-        ax = ax2
+        ax = ax2, 
+        cmap = cmap
     )
     
     ax2.set_xlabel("Number of OpenMP threads")
