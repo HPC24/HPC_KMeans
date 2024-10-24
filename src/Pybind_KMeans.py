@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import time
 import os
-from sklearn.cluster import KMeans
 from sklearn.datasets import fetch_openml
 import sys
 
@@ -45,7 +44,7 @@ def fit_kmeans(kmeans, data) -> float:
     # get the fit time in ms 
     fit_time = (end_time - start_time) * 1000
     
-    iterations = kmeans.n_iter_
+    iterations = kmeans.n_iter
     
     return fit_time, iterations
     
