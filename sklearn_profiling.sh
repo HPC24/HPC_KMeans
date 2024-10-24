@@ -16,10 +16,10 @@
 
 OUTPUT_DIR="./pybind_timings"
 OUTPUT_FILE="pybind_timings.txt"
-BUILD_DIR="build_pybind"
+BUILD_DIR=$(realpath build_pybind)
 
 CONDA_ENV="data-science"
-PYTHON_FILE="src/KMeans.py"
+PYTHON_FILE="src/Pybind_KMeans.py"
 
 # slurm specific 
 module purge

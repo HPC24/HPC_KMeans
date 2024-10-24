@@ -4,11 +4,11 @@
 #SBATCH --reservation=hpc_course_sose2024
 
 #SBATCH --job-name=profiling
-#SBATCH --time=0-04:00:00
+#SBATCH --time=0-00:10:00
 #SBATCH --partition=single
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=12
 #SBATCH --mem-per-cpu=7900MB
 
 #SBATCH --output=%u.log.%j.out
@@ -30,7 +30,10 @@ module purge
 module add slurm
 module add zlib/1.3.1
 module add cmake/3.27.9
-module add intel-oneapi-vtune/2024.1.0
+module add miniconda3
+
+source deactivate
+source activate data-science
 
 if [ $CXX_COMPILER == "g++" ]; then
     echo "Loading gcc compiler"
@@ -47,7 +50,8 @@ mkdir -p ${BUILD_DIR}
 
 echo "Starting Build Process"
 
-cmake -S . -B ${BUILD_DIR}
+cmake -S . -B ${BUILD_DIR} \
+
 
 cmake --build ${BUILD_DIR}
 
