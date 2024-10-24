@@ -203,7 +203,7 @@ else
 	echo "Output file already exists: ${OUTPUT_FILE}"
     fi
     
-    if [[ ${OMP_PROC_BIND =~ ^(false|true|close|spread|master)$ ]]; then 
+    if [[ ${OMP_PROC_BIND} =~ ^(false|true|close|spread|master)$ ]]; then 
 	
 	echo "Setting OMP_PROC_BIND to ${OMP_PROC_BIND}"
 	export OMP_PROC_BIND=${OMP_PROC_BIND}

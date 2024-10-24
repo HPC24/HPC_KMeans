@@ -24,9 +24,9 @@ DATA_DIR_NAME="out"
 VISUALIZATION_DIR="./Visualization"
 
 BUILD_DIRS=$(ls -d ${BUILD_DIR_PREFIX}* | xargs realpath)
-DATA_DIRS=$(echo "${BUILD_DIRS}" | sed "s/\([^ ]*\)/\1\/${DATA_DIR_NAME}/g")
-DATA_DIRS="${DATA_DIRS} $(realpath sklearn_timings)"
-
+#DATA_DIRS=$(echo "${BUILD_DIRS}" | sed "s/\([^ ]*\)/\1\/${DATA_DIR_NAME}/g")
+#DATA_DIRS="${DATA_DIRS} $(realpath sklearn_timings)"
+DATA_DIRS="out"
 echo "Creating Visualization directory"
 
 mkdir -p ${VISUALIZATION_DIR}

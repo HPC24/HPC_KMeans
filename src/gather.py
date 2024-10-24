@@ -53,7 +53,7 @@ def main():
     color_mapping = {
     'g++_O3_arch_opt': '#FF0000',  # Red
     'g++_O3_no_archopt': '#0000FF',  # Blue
-    'icx_O3_arch_opt': '#FFFF00',  # Yellow
+    'icx_O3_arch_opt': '#FFD700',  # Gold
     'icx_O3_no_archopt': '#008000',  # Green
     'g++_O3_arch_opt_SIMD_512': '#00FFFF',  # Cyan
     'icx_O3_arch_opt_SIMD_512': '#FF00FF',  # Magenta
@@ -72,7 +72,6 @@ def main():
 
     # T_n=1 / T_n
     piv_table = piv_table.div(piv_table.iloc[0], axis = "columns").pow(-1)
-    
     #ideal line
     
     y_values = np.arange(1, piv_table.index[-1] + 1, 1)
@@ -96,7 +95,7 @@ def main():
         linewidth=2,
         markersize=8,
         ax = ax1,
-        color = [color_mapping[label] for label in piv_table.index]
+        color = [color_mapping[label] for label in piv_table.columns]
     )
     
     ax1.plot(
@@ -133,7 +132,7 @@ def main():
         linewidth=2,
         markersize=8,
         ax = ax2, 
-        color = [color_mapping[label] for label in piv_table_iterations.index]
+        color = [color_mapping[label] for label in piv_table_iterations.columns]
     )
     
     ax2.set_xlabel("Number of OpenMP threads")
