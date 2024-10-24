@@ -59,7 +59,7 @@ def main():
     assert output_dir.is_dir(), f"{output_dir} does not exist" 
     assert build_dir.is_dir(), f"{build_dir} does not exist"
     
-    sys.path.append(build_dir)
+    sys.path.append(str(build_dir))
     import P_KMeansLib
     
     output_file = output_dir / cmd_args.output_file
