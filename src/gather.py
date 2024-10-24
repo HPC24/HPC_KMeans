@@ -59,6 +59,7 @@ def main():
     'icx_O3_arch_opt_SIMD_512': '#FF00FF',  # Magenta
     'g++_O3_arch_opt_SIMD_512_NUMA': '#FFA500',  # Orange
     'icx_O3_arch_opt_SIMD_512_NUMA': '#800080',  # Purple
+    'pybind': '#008080',  # Dark Teal
     'sklearn': '#808080'   # Grey
 }
     
