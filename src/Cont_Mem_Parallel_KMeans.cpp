@@ -15,8 +15,8 @@ Parallel_KMeans<FType, IType>::Parallel_KMeans(const int n_cluster, const int ma
     : n_cluster{n_cluster},
     max_iter{max_iter},
     tol{tol},
-    n_iter{0},
     seed{seed},
+    n_iter{0},
     gen(seed.value_or(std::random_device{}()))
     {
 
@@ -143,7 +143,7 @@ void Parallel_KMeans<FType, IType>::fit(const std::vector<std::vector<FType>>& d
     initializeCentroids(new_data, rows, cols);
     int iter = 1;
 
-    for (iter; iter < this->max_iter + 1; ++iter){
+    for (; iter < this->max_iter + 1; ++iter){
 
         assignCentroids(new_data, rows, cols);
         updateCentroids(new_data, new_centroids, rows, cols);
@@ -194,7 +194,7 @@ std::vector<int> Parallel_KMeans<FType, IType>::predict(const std::vector<std::v
         int best_centroid_idx = 0;
         const FType* new_data_ptr = new_data[point].data();
 
-        for (IType centroid = 0; centroid < n_cluster; ++centroid)
+        for (int centroid = 0; centroid < n_cluster; ++centroid)
         {
             FType distance = 0;
             const FType* centroids_ptr = &centroids[centroid * COLS];

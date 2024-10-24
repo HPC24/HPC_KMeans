@@ -146,6 +146,13 @@ include_directories(include)
 # Add subdirectory for source files
 add_subdirectory(src)
 
+# add the pybind11 subdirectory 
+add_subdirectory(extern/pybind11)
 
+pybind11_add_module(P_KMeansLib
+    src/Bindings.cpp  # Pybind11 bindings
+    src/Cont_Mem_Parallel_KMeans.cpp
+)
 
-
+# Link OpenMP to the target (mylib)
+target_link_libraries(P_KMeansLib PRIVATE OpenMP::OpenMP_CXX)

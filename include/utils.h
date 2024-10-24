@@ -128,7 +128,7 @@ std::tuple<std::vector<double>, std::vector<int>, double, double, double> TimeKM
     double KMeans_min = KMeans_timings[0];
     double KMeans_max = KMeans_timings[0];
 
-    for (int i = 0; i < KMeans_timings.size(); ++i)
+    for (std::size_t i = 0; i < KMeans_timings.size(); ++i)
     {
         KMeans_average += KMeans_timings[i];
 
@@ -180,7 +180,7 @@ std::tuple<std::vector<double>, std::vector<int>, double, double, double> TimePa
     double KMeans_min = KMeans_timings[0];
     double KMeans_max = KMeans_timings[0];
 
-    for (int i = 0; i < KMeans_timings.size(); ++i)
+    for (std::size_t i = 0; i < KMeans_timings.size(); ++i)
     {
         KMeans_average += KMeans_timings[i];
 

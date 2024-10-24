@@ -20,7 +20,7 @@ struct AlignedAllocator{
     AlignedAllocator() = default;
 
     template<typename U>
-    AlignedAllocator(const AlignedAllocator<U>& other) noexcept {};
+    AlignedAllocator(const AlignedAllocator<U>& other) noexcept {}
 
     FType* allocate(std::size_t n){
 
