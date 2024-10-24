@@ -14,8 +14,9 @@
 #SBATCH --output=%u.log.%j.out
 #SBATCH --error=%u.log.%j.err
 
-OUTPUT_DIR="./sklearn_timings"
-OUTPUT_FILE="sklearn_timings.txt"
+OUTPUT_DIR="./pybind_timings"
+OUTPUT_FILE="pybind_timings.txt"
+BUILD_DIR="build_pybind"
 
 CONDA_ENV="data-science"
 PYTHON_FILE="src/KMeans.py"
@@ -42,7 +43,7 @@ do
     export OMP_NUM_THREADS=${N}
     echo "Starting timing for ${N} OMP_NUM_THREADS"
 
-    python ${PYTHON_FILE} --output_dir ${OUTPUT_DIR} --output_file ${OUTPUT_FILE}
+    python ${PYTHON_FILE} --output_dir ${OUTPUT_DIR} --output_file ${OUTPUT_FILE} --build ${BUILD_DIR}
 
 done
 
