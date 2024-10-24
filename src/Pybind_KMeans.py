@@ -105,6 +105,8 @@ def main():
         
         if file_is_empty:
             file.write("OMP_NUM_THREADS\tFIT_TIME\tNUM_ITERATIONS\n")
+            for fit_time, num_iterations in zip(timings, iterations):
+                file.write(f"{omp_num_threads}\t{fit_time}\t{num_iterations}\n")
         else:
             for fit_time, num_iterations in zip(timings, iterations):
                 file.write(f"{omp_num_threads}\t{fit_time}\t{num_iterations}\n")
